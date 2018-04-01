@@ -8,22 +8,22 @@ ifneq (,$(filter userdebug eng,$(TARGET_BUILD_VARIANT)))
 init_options += \
     -DALLOW_LOCAL_PROP_OVERRIDE=1 \
     -DALLOW_PERMISSIVE_SELINUX=1 \
-    -DREBOOT_BOOTLOADER_ON_PANIC=1 \
     -DDUMP_ON_UMOUNT_FAILURE=1
 else
 init_options += \
     -DALLOW_LOCAL_PROP_OVERRIDE=0 \
     -DALLOW_PERMISSIVE_SELINUX=0 \
-    -DREBOOT_BOOTLOADER_ON_PANIC=0 \
     -DDUMP_ON_UMOUNT_FAILURE=0
 endif
 
 ifneq (,$(filter eng,$(TARGET_BUILD_VARIANT)))
 init_options += \
-    -DSHUTDOWN_ZERO_TIMEOUT=1
+    -DSHUTDOWN_ZERO_TIMEOUT=1 \
+    -DREBOOT_BOOTLOADER_ON_PANIC=1
 else
 init_options += \
-    -DSHUTDOWN_ZERO_TIMEOUT=0
+    -DSHUTDOWN_ZERO_TIMEOUT=0 \
+    -DREBOOT_BOOTLOADER_ON_PANIC=0
 endif
 
 init_options += -DLOG_UEVENTS=0
@@ -53,8 +53,8 @@ LOCAL_SRC_FILES:= \
     reboot.cpp \
     signal_handler.cpp \
     ueventd.cpp \
-    ueventd_parser.cpp \
-    watchdogd.cpp
+    watchdogd.cpp \
+    vendor_init.cpp
 
 LOCAL_MODULE:= init
 LOCAL_C_INCLUDES += \
@@ -100,12 +100,8 @@ LOCAL_POST_INSTALL_CMD := $(hide) mkdir -p $(TARGET_ROOT_OUT)/sbin; \
 LOCAL_SANITIZE := signed-integer-overflow
 LOCAL_CLANG := true
 
-ifneq ($(strip $(TARGET_PLATFORM_DEVICE_BASE)),)
-LOCAL_CFLAGS += -D_PLATFORM_BASE="\"$(TARGET_PLATFORM_DEVICE_BASE)\""
-endif
 ifneq ($(strip $(TARGET_INIT_VENDOR_LIB)),)
-LOCAL_CFLAGS += -DTARGET_INIT_VENDOR_LIB
-LOCAL_STATIC_LIBRARIES += $(TARGET_INIT_VENDOR_LIB)
+LOCAL_WHOLE_STATIC_LIBRARIES += $(TARGET_INIT_VENDOR_LIB)
 endif
 
 include $(BUILD_EXECUTABLE)

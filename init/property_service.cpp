@@ -55,7 +55,7 @@
 
 #include "init.h"
 #include "util.h"
-#include "log.h"
+#include "vendor_init.h"
 
 using android::base::Timer;
 
@@ -64,10 +64,6 @@ using android::base::Timer;
 
 namespace android {
 namespace init {
-
-#ifdef TARGET_INIT_VENDOR_LIB
-extern void vendor_load_properties(void);
-#endif
 
 static int persistent_properties_loaded = 0;
 
@@ -704,13 +700,6 @@ void load_persist_props(void) {
     /* Read persistent properties after all default values have been loaded. */
     load_persistent_properties();
     property_set("ro.persistent_properties.ready", "true");
-
-#ifdef TARGET_INIT_VENDOR_LIB
-    /* vendor-specific properties
-     */
-    vendor_load_properties();
-#endif
-
 }
 
 void load_recovery_id_prop() {
@@ -749,6 +738,10 @@ void load_system_props() {
     load_properties_from_file("/odm/build.prop", NULL);
     load_properties_from_file("/vendor/build.prop", NULL);
     load_properties_from_file("/factory/factory.prop", "ro.*");
+
+    // Update with vendor-specific property runtime overrides
+    vendor_load_properties();
+
     load_recovery_id_prop();
 }
 
